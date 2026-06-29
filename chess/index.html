@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Chess</title>
+<link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <h1>♞ Chess</h1>
+      <p class="tagline">A clean, full-rules chess game — play locally or against a simple AI.</p>
+    </header>
+
+    <main class="layout">
+      <section class="board-area">
+        <div class="player-tag" id="topPlayer">
+          <span class="dot black"></span>
+          <span class="name">Black</span>
+          <span class="captured" id="capturedByWhite"></span>
+        </div>
+
+        <div class="board-wrap">
+          <div id="board" class="board" role="grid" aria-label="Chess board"></div>
+          <div id="promotion" class="promotion hidden" role="dialog" aria-label="Choose promotion piece"></div>
+        </div>
+
+        <div class="player-tag" id="bottomPlayer">
+          <span class="dot white"></span>
+          <span class="name">White</span>
+          <span class="captured" id="capturedByBlack"></span>
+        </div>
+      </section>
+
+      <aside class="sidebar">
+        <div class="status-card">
+          <div class="turn" id="turnLabel">White to move</div>
+          <div class="message" id="message"></div>
+        </div>
+
+        <div class="controls">
+          <button id="newGameBtn" class="btn primary">New Game</button>
+          <button id="undoBtn" class="btn">Undo</button>
+          <button id="flipBtn" class="btn">Flip Board</button>
+        </div>
+
+        <div class="mode">
+          <label class="mode-label">Opponent</label>
+          <div class="segmented" id="modeToggle">
+            <button data-mode="human" class="seg active">Two Players</button>
+            <button data-mode="ai" class="seg">Vs Computer</button>
+          </div>
+          <div class="ai-options hidden" id="aiOptions">
+            <label class="mode-label">Computer plays</label>
+            <div class="segmented" id="aiColorToggle">
+              <button data-color="b" class="seg active">Black</button>
+              <button data-color="w" class="seg">White</button>
+            </div>
+            <label class="mode-label">Difficulty</label>
+            <div class="segmented" id="aiLevelToggle">
+              <button data-level="1" class="seg">Easy</button>
+              <button data-level="2" class="seg active">Medium</button>
+              <button data-level="3" class="seg">Hard</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="history-card">
+          <h2>Moves</h2>
+          <ol id="moveList" class="move-list"></ol>
+        </div>
+      </aside>
+    </main>
+
+    <footer class="footer">
+      <span>Built for #100DaysOfCode · click a piece, then a highlighted square to move.</span>
+    </footer>
+  </div>
+
+  <script src="chess.js"></script>
+  <script src="ai.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
