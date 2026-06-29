@@ -1,0 +1,45 @@
+name: Deploy Chess to GitHub Pages
+
+# Publishes the self-contained chess game (the chess/ folder) to GitHub Pages.
+# The chess/ directory is uploaded as the site root, so the game is served at
+# the repository's Pages URL (e.g. https://<user>.github.io/<repo>/).
+
+on:
+  push:
+    branches: [master, main]
+    paths:
+      - "chess/**"
+      - ".github/workflows/deploy-chess-pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow one concurrent deployment; newer runs cancel in-progress ones.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload chess/ as the Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./chess
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
