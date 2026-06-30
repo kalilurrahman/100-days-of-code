@@ -403,6 +403,98 @@
     }
   });
 
+  /* ------------------------- Fullscreen ------------------------- */
+
+  function fsElement() {
+    return (
+      document.fullscreenElement ||
+      document.webkitFullscreenElement ||
+      null
+    );
+  }
+
+  function enterFullscreen() {
+    const el = document.documentElement;
+    const req =
+      el.requestFullscreen ||
+      el.webkitRequestFullscreen ||
+      el.webkitRequestFullScreen;
+    if (req) {
+      try {
+        const p = req.call(el);
+        if (p && p.catch) p.catch(() => {});
+      } catch (_) {
+        /* fullscreen may be blocked; ignore */
+      }
+    }
+  }
+
+  function exitFullscreen() {
+    const exit = document.exitFullscreen || document.webkitExitFullscreen;
+    if (exit) {
+      try {
+        exit.call(document);
+      } catch (_) {
+        /* ignore */
+      }
+    }
+  }
+
+  function toggleFullscreen() {
+    if (fsElement()) exitFullscreen();
+    else enterFullscreen();
+  }
+
+  function updateFsLabel() {
+    const btn = document.getElementById("fullscreenBtn");
+    if (!btn) return;
+    const active = !!fsElement();
+    document.body.classList.toggle("fs", active);
+    btn.textContent = active ? "⛶ Exit Fullscreen" : "⛶ Fullscreen";
+  }
+
+  const fsBtn = document.getElementById("fullscreenBtn");
+  if (fsBtn) fsBtn.addEventListener("click", toggleFullscreen);
+  document.addEventListener("fullscreenchange", updateFsLabel);
+  document.addEventListener("webkitfullscreenchange", updateFsLabel);
+
+  /* ------------------------- Environment ------------------------- */
+
+  const standalone =
+    window.matchMedia("(display-mode: standalone)").matches ||
+    window.matchMedia("(display-mode: fullscreen)").matches ||
+    window.navigator.standalone === true;
+
+  const isMobile =
+    window.matchMedia("(pointer: coarse)").matches ||
+    /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent);
+
+  if (isMobile) document.body.classList.add("mobile");
+  if (standalone) document.body.classList.add("standalone");
+
+  // Auto-enter fullscreen on the first user gesture (browsers block it on
+  // load). Only attempt on mobile or touch devices, and not when already
+  // running as an installed standalone/fullscreen PWA.
+  if (isMobile && !standalone) {
+    const autoFs = () => {
+      enterFullscreen();
+      window.removeEventListener("pointerdown", autoFs);
+      window.removeEventListener("touchend", autoFs);
+    };
+    window.addEventListener("pointerdown", autoFs, { once: true, passive: true });
+    window.addEventListener("touchend", autoFs, { once: true, passive: true });
+  }
+
+  /* ------------------------- Service worker ------------------------- */
+
+  if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("sw.js").catch(() => {
+        /* offline support is best-effort */
+      });
+    });
+  }
+
   // Boot
   render();
 })();
