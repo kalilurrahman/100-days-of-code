@@ -1,5 +1,8 @@
 :root {
+  /* Default theme: "Forest" green (lichess-like). Other themes override
+     these custom properties via [data-theme="..."] on the <html> element. */
   --bg: #0f1420;
+  --bg2: #1d2740;
   --panel: #1a2030;
   --panel-2: #232b3d;
   --text: #e7ecf3;
@@ -15,6 +18,48 @@
   --shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
 }
 
+/* ---------- Color themes (derived from the base palette) ---------- */
+
+[data-theme="wood"] {
+  --bg: #1c1712; --bg2: #2a2018;
+  --panel: #241c14; --panel-2: #2f2519; --border: #3d3122;
+  --accent: #d8a05a; --accent-2: #a9763c;
+  --light: #f0d9b5; --dark: #b58863;
+  --select: #f4e07a; --last: rgba(244, 224, 122, 0.5);
+}
+
+[data-theme="ocean"] {
+  --bg: #0b1622; --bg2: #11263a;
+  --panel: #11202e; --panel-2: #1a2c3d; --border: #26415a;
+  --accent: #56c2e6; --accent-2: #3a8fc0;
+  --light: #dbe7ee; --dark: #6f97b6;
+  --select: #ffe06a; --last: rgba(86, 194, 230, 0.42);
+}
+
+[data-theme="slate"] {
+  --bg: #101319; --bg2: #1b2230;
+  --panel: #191e27; --panel-2: #232a37; --border: #333c4c;
+  --accent: #9aa7bd; --accent-2: #6c7891;
+  --light: #e7eaef; --dark: #7b8597;
+  --select: #f0e07a; --last: rgba(154, 167, 189, 0.42);
+}
+
+[data-theme="berry"] {
+  --bg: #160f1a; --bg2: #241531;
+  --panel: #1e1426; --panel-2: #2a1d33; --border: #3c2b48;
+  --accent: #c77db0; --accent-2: #9c5a86;
+  --light: #ead7e6; --dark: #9c6f93;
+  --select: #ffd76a; --last: rgba(199, 125, 176, 0.42);
+}
+
+[data-theme="sunset"] {
+  --bg: #1a1012; --bg2: #2c1618;
+  --panel: #221416; --panel-2: #301c1e; --border: #46282a;
+  --accent: #ff9f6b; --accent-2: #d46a4a;
+  --light: #f3dcc9; --dark: #c07a63;
+  --select: #ffe07a; --last: rgba(255, 159, 107, 0.42);
+}
+
 * { box-sizing: border-box; }
 
 html { overscroll-behavior: none; }
@@ -22,10 +67,11 @@ html { overscroll-behavior: none; }
 body {
   margin: 0;
   font-family: "Segoe UI", system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif;
-  background: radial-gradient(1200px 600px at 70% -10%, #1d2740 0%, var(--bg) 55%);
+  background: radial-gradient(1200px 600px at 70% -10%, var(--bg2) 0%, var(--bg) 55%);
   color: var(--text);
   min-height: 100vh;
   min-height: 100dvh;
+  transition: background-color 0.25s ease;
   overscroll-behavior: none;
   -webkit-tap-highlight-color: transparent;
 }
@@ -94,6 +140,7 @@ button { touch-action: manipulation; }
   cursor: pointer;
 }
 
+.square { transition: background-color 0.25s ease; }
 .square.light { background: var(--light); }
 .square.dark { background: var(--dark); }
 
@@ -190,7 +237,7 @@ button { touch-action: manipulation; }
 
 .sidebar { display: flex; flex-direction: column; gap: 16px; }
 
-.status-card, .history-card, .mode {
+.status-card, .history-card, .mode, .theme-card {
   background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -255,12 +302,49 @@ button { touch-action: manipulation; }
 
 .ai-options { margin-top: 12px; }
 
-.history-card h2 {
+.history-card h2,
+.theme-card h2 {
   margin: 0 0 8px;
   font-size: 14px;
   text-transform: uppercase;
   letter-spacing: 0.6px;
   color: var(--muted);
+}
+
+/* ---------- Theme picker ---------- */
+
+.theme-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.swatch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 4px;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  transition: border-color 0.15s ease, color 0.15s ease, transform 0.05s ease;
+}
+.swatch:hover { color: var(--text); }
+.swatch:active { transform: translateY(1px); }
+.swatch.active {
+  border-color: var(--accent);
+  color: var(--text);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+.swatch .chip {
+  width: 34px;
+  height: 34px;
+  border-radius: 7px;
+  border: 1px solid rgba(0, 0, 0, 0.25);
 }
 .move-list {
   list-style: none;

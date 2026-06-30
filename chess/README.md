@@ -14,6 +14,13 @@ step, no libraries — just open `index.html` and play.
   Black.
 - **Polished UI** — move hints, last-move and check highlighting, captured-piece
   trays, algebraic move list, board flip, and undo.
+- **Color themes** — Forest, Wood, Ocean, Slate, Berry, and Sunset schemes,
+  derived from the base palette. Your choice is remembered between visits.
+- **Installable PWA** — add it to your home screen / desktop and it runs as a
+  standalone, fullscreen app that **works offline** (service worker caches the
+  app shell).
+- **Mobile-friendly** — responsive board that fits any screen, large touch
+  targets, safe-area handling for notches, and auto-fullscreen on first tap.
 - **Promotion picker** — choose queen, rook, bishop, or knight when a pawn
   reaches the back rank.
 - **Keyboard shortcuts** — `Esc` to deselect, `Ctrl/Cmd+Z` to undo.

@@ -485,6 +485,67 @@
     window.addEventListener("touchend", autoFs, { once: true, passive: true });
   }
 
+  /* ------------------------- Themes ------------------------- */
+
+  // Color schemes derived from the base palette. `light`/`dark` are the board
+  // square colors (also used for the picker swatch); `bg` drives the PWA
+  // status-bar color. The full palette for each lives in style.css.
+  const THEMES = [
+    { id: "green", name: "Forest", light: "#ebecd0", dark: "#779556", bg: "#0f1420" },
+    { id: "wood", name: "Wood", light: "#f0d9b5", dark: "#b58863", bg: "#1c1712" },
+    { id: "ocean", name: "Ocean", light: "#dbe7ee", dark: "#6f97b6", bg: "#0b1622" },
+    { id: "slate", name: "Slate", light: "#e7eaef", dark: "#7b8597", bg: "#101319" },
+    { id: "berry", name: "Berry", light: "#ead7e6", dark: "#9c6f93", bg: "#160f1a" },
+    { id: "sunset", name: "Sunset", light: "#f3dcc9", dark: "#c07a63", bg: "#1a1012" },
+  ];
+  const THEME_KEY = "chess-theme";
+
+  function applyTheme(id) {
+    const theme = THEMES.find((t) => t.id === id) || THEMES[0];
+    document.documentElement.dataset.theme = theme.id;
+    const meta = document.querySelector('meta[name="theme-color"]');
+    if (meta) meta.setAttribute("content", theme.bg);
+    document.querySelectorAll(".swatch").forEach((b) => {
+      b.classList.toggle("active", b.dataset.theme === theme.id);
+    });
+    try {
+      localStorage.setItem(THEME_KEY, theme.id);
+    } catch (_) {
+      /* storage may be unavailable; theme still applies for this session */
+    }
+  }
+
+  function buildThemePicker() {
+    const host = document.getElementById("themePicker");
+    if (!host) return;
+    host.innerHTML = "";
+    for (const t of THEMES) {
+      const btn = document.createElement("button");
+      btn.className = "swatch";
+      btn.type = "button";
+      btn.dataset.theme = t.id;
+      btn.title = t.name + " theme";
+      const chip = document.createElement("span");
+      chip.className = "chip";
+      chip.style.background = `linear-gradient(135deg, ${t.light} 0 50%, ${t.dark} 50% 100%)`;
+      const label = document.createElement("span");
+      label.textContent = t.name;
+      btn.appendChild(chip);
+      btn.appendChild(label);
+      btn.addEventListener("click", () => applyTheme(t.id));
+      host.appendChild(btn);
+    }
+  }
+
+  let savedTheme = "green";
+  try {
+    savedTheme = localStorage.getItem(THEME_KEY) || "green";
+  } catch (_) {
+    /* ignore */
+  }
+  buildThemePicker();
+  applyTheme(savedTheme);
+
   /* ------------------------- Service worker ------------------------- */
 
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
