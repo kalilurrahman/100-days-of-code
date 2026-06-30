@@ -2,9 +2,22 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0" />
 <title>Chess</title>
-<link rel="icon" href="data:image/svg+xml,&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'&gt;&lt;text y='.9em' font-size='90'&gt;&#9822;&lt;/text&gt;&lt;/svg&gt;" />
+<meta name="description" content="A clean, full-rules chess game with an AI opponent. Works offline and installs as an app." />
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.webmanifest" />
+<meta name="theme-color" content="#0f1420" />
+
+<!-- iOS / mobile web app -->
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Chess" />
+
+<link rel="icon" href="icon.svg" />
+<link rel="apple-touch-icon" href="icon.svg" />
 <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -44,6 +57,7 @@
           <button id="newGameBtn" class="btn primary">New Game</button>
           <button id="undoBtn" class="btn">Undo</button>
           <button id="flipBtn" class="btn">Flip Board</button>
+          <button id="fullscreenBtn" class="btn" aria-label="Toggle fullscreen">⛶ Fullscreen</button>
         </div>
 
         <div class="mode">
