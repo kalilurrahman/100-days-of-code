@@ -4,7 +4,7 @@
  * with no network (e.g. installed to a phone's home screen).
  */
 
-const CACHE = "chess-v1";
+const CACHE = "chess-v2";
 const ASSETS = [
   "./",
   "./index.html",
@@ -15,6 +15,10 @@ const ASSETS = [
   "./manifest.webmanifest",
   "./icon.svg",
   "./icon-maskable.svg",
+  "./icon-192.png",
+  "./icon-512.png",
+  "./icon-maskable-512.png",
+  "./apple-touch-icon.png",
 ];
 
 self.addEventListener("install", (event) => {
