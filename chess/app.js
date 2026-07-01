@@ -5,10 +5,10 @@
 (function () {
   "use strict";
 
-  const GLYPH = {
-    w: { k: "♔", q: "♕", r: "♖", b: "♗", n: "♘", p: "♙" },
-    b: { k: "♚", q: "♛", r: "♜", b: "♝", n: "♞", p: "♟" },
-  };
+  // Use the solid (filled) glyphs for BOTH colors so the pieces read as bulky
+  // carved silhouettes; white vs. black is distinguished by CSS fill color.
+  const SOLID = { k: "♚", q: "♛", r: "♜", b: "♝", n: "♞", p: "♟" };
+  const GLYPH = { w: SOLID, b: SOLID };
 
   const boardEl = document.getElementById("board");
   const turnLabel = document.getElementById("turnLabel");

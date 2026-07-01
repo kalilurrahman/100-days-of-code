@@ -162,23 +162,34 @@ button { touch-action: manipulation; }
 }
 
 .piece {
-  font-size: clamp(28px, 8.2vw, 56px);
+  font-size: clamp(32px, 9vw, 62px);
   line-height: 1;
   position: relative;
   z-index: 2;
   transition: transform 0.08s ease;
+  /* Carved-wood look: an outline around a solid fill, with the stroke painted
+     under the fill so the fill stays crisp, plus a grounded drop shadow. */
+  -webkit-text-stroke-width: 1.4px;
+  paint-order: stroke fill;
+  filter: drop-shadow(0 2px 1.5px rgba(0, 0, 0, 0.45));
 }
 
+/* Light "boxwood" pieces: warm ivory with a brown edge — visible on every
+   square color and theme. */
 .piece.white {
-  color: #ffffff;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.55), 0 0 1px #444;
+  color: #f4e7c9;
+  -webkit-text-stroke-color: #6b4f2e;
+  text-shadow: 0 1px 0 #fff7e6;
 }
+/* Dark "walnut" pieces: deep brown fill with a lit warm-brown rim so they pop
+   on dark squares too. */
 .piece.black {
-  color: #1d1d1d;
-  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.25);
+  color: #2b1d11;
+  -webkit-text-stroke-color: #7c6038;
+  text-shadow: 0 1px 0 rgba(255, 235, 200, 0.15);
 }
 
-.square:hover .piece { transform: translateY(-2px); }
+.square:hover .piece { transform: translateY(-2px) scale(1.02); }
 
 .hint {
   position: absolute;
@@ -393,8 +404,16 @@ button { touch-action: manipulation; }
   align-items: center;
   justify-content: center;
 }
-.promo-piece.white { color: #fff; text-shadow: 0 1px 2px #000; }
-.promo-piece.black { color: #1d1d1d; }
+.promo-piece.white {
+  color: #f4e7c9;
+  -webkit-text-stroke: 1.2px #6b4f2e;
+  paint-order: stroke fill;
+}
+.promo-piece.black {
+  color: #2b1d11;
+  -webkit-text-stroke: 1.2px #7c6038;
+  paint-order: stroke fill;
+}
 .promo-piece:hover { background: #2c3650; }
 
 .hidden { display: none !important; }
