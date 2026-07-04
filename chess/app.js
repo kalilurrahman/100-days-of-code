@@ -7,7 +7,14 @@
 
   // Use the solid (filled) glyphs for BOTH colors so the pieces read as bulky
   // carved silhouettes; white vs. black is distinguished by CSS fill color.
-  const SOLID = { k: "♚", q: "♛", r: "♜", b: "♝", n: "♞", p: "♟" };
+  // The trailing U+FE0E (variation selector-15) forces TEXT presentation so the
+  // glyph is not rendered as a color emoji — otherwise phones show every piece
+  // as the same black emoji, ignoring the CSS color.
+  const VS = "︎";
+  const SOLID = {
+    k: "♚" + VS, q: "♛" + VS, r: "♜" + VS,
+    b: "♝" + VS, n: "♞" + VS, p: "♟" + VS,
+  };
   const GLYPH = { w: SOLID, b: SOLID };
 
   const boardEl = document.getElementById("board");

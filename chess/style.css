@@ -138,6 +138,9 @@ button { touch-action: manipulation; }
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  /* Establish a query container so pieces can size themselves as a fraction
+     of the square (which in turn tracks the board and the screen size). */
+  container-type: inline-size;
 }
 
 .square { transition: background-color 0.25s ease; }
@@ -162,16 +165,24 @@ button { touch-action: manipulation; }
 }
 
 .piece {
-  font-size: clamp(32px, 9vw, 62px);
+  /* Scale with the square (80% of the square's width) so pieces track the
+     board size on any screen, including mobile. */
+  font-size: 80cqi;
   line-height: 1;
   position: relative;
   z-index: 2;
   transition: transform 0.08s ease;
+  /* Force monochrome text rendering so the CSS fill color is honored instead
+     of the system emoji font (which would draw every piece the same color). */
+  font-family: "Segoe UI Symbol", "Noto Sans Symbols 2", "Noto Sans Symbols",
+    "Apple Symbols", "DejaVu Sans", "Arial Unicode MS", sans-serif;
+  font-variant-emoji: text;
   /* Carved-wood look: an outline around a solid fill, with the stroke painted
-     under the fill so the fill stays crisp, plus a grounded drop shadow. */
-  -webkit-text-stroke-width: 1.4px;
+     under the fill so the fill stays crisp, plus a grounded drop shadow. Sizes
+     are in em so they stay proportional as the piece scales. */
+  -webkit-text-stroke-width: 0.035em;
   paint-order: stroke fill;
-  filter: drop-shadow(0 2px 1.5px rgba(0, 0, 0, 0.45));
+  filter: drop-shadow(0 0.03em 0.02em rgba(0, 0, 0, 0.45));
 }
 
 /* Light "boxwood" pieces: warm ivory with a brown edge — visible on every
@@ -179,17 +190,17 @@ button { touch-action: manipulation; }
 .piece.white {
   color: #f4e7c9;
   -webkit-text-stroke-color: #6b4f2e;
-  text-shadow: 0 1px 0 #fff7e6;
+  text-shadow: 0 0.015em 0 #fff7e6;
 }
 /* Dark "walnut" pieces: deep brown fill with a lit warm-brown rim so they pop
    on dark squares too. */
 .piece.black {
   color: #2b1d11;
   -webkit-text-stroke-color: #7c6038;
-  text-shadow: 0 1px 0 rgba(255, 235, 200, 0.15);
+  text-shadow: 0 0.015em 0 rgba(255, 235, 200, 0.15);
 }
 
-.square:hover .piece { transform: translateY(-2px) scale(1.02); }
+.square:hover .piece { transform: translateY(-4%) scale(1.02); }
 
 .hint {
   position: absolute;
@@ -242,6 +253,9 @@ button { touch-action: manipulation; }
   font-size: 20px;
   letter-spacing: -2px;
   line-height: 1;
+  font-family: "Segoe UI Symbol", "Noto Sans Symbols 2", "Noto Sans Symbols",
+    "Apple Symbols", "DejaVu Sans", "Arial Unicode MS", sans-serif;
+  font-variant-emoji: text;
 }
 
 /* ---------- Sidebar ---------- */
@@ -395,6 +409,9 @@ button { touch-action: manipulation; }
 }
 .promo-piece {
   font-size: 40px;
+  font-family: "Segoe UI Symbol", "Noto Sans Symbols 2", "Noto Sans Symbols",
+    "Apple Symbols", "DejaVu Sans", "Arial Unicode MS", sans-serif;
+  font-variant-emoji: text;
   width: 60px; height: 60px;
   background: var(--panel-2);
   border: 1px solid var(--border);
@@ -449,9 +466,11 @@ body.standalone .topbar h1 {
   .topbar h1 { font-size: 24px; }
   .tagline { font-size: 13px; }
 
-  /* Board first, sized to fit either width (portrait) or height (landscape). */
+  /* Board first, sized to the phone screen — fill the width, but never taller
+     than the visible viewport (svh accounts for mobile browser chrome). */
   .board-wrap {
-    width: min(94vw, 70vh);
+    width: min(96vw, 72vh);
+    width: min(96vw, 72svh);
     margin: 0 auto;
   }
   .player-tag { justify-content: center; }
@@ -459,9 +478,6 @@ body.standalone .topbar h1 {
   .controls .btn { flex: 1 1 40%; }
 
   .move-list { max-height: 160px; }
-
-  /* Bigger, easier-to-hit pieces relative to the smaller board. */
-  .piece { font-size: clamp(26px, 11vw, 52px); }
 }
 
 /* Landscape phones: place the board beside the controls so it stays large. */
@@ -470,7 +486,10 @@ body.standalone .topbar h1 {
     grid-template-columns: auto 1fr;
     align-items: center;
   }
-  .board-wrap { width: min(96vw, 86vh); }
+  .board-wrap {
+    width: min(96vw, 88vh);
+    width: min(96vw, 88svh);
+  }
   .topbar, .footer { display: none; }
   .app { padding-top: max(8px, env(safe-area-inset-top)); }
   .move-list { max-height: 120px; }
