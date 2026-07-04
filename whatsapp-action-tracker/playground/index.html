@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>watracker playground — WhatsApp action tracker</title>
+<style>
+:root{
+  --paper:#F6F8F5;--ink:#17251D;--soft:#4A5C52;--line:#D8E2DA;--card:#fff;
+  --accent:#1E9E58;--accent-deep:#157A43;--term:#0E1A14;--term-ink:#D3E4D8;
+  --amber:#B26B12;--red:#C0392B;
+}
+@media(prefers-color-scheme:dark){:root{
+  --paper:#101915;--ink:#E2EDE5;--soft:#93A89B;--line:#24352B;--card:#16231C;
+  --accent:#3CC176;--accent-deep:#4ADE80;--term:#0A1410;
+  --amber:#E0A050;--red:#E5766A;
+}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font:15px/1.55 "Avenir Next","Segoe UI",system-ui,sans-serif}
+.wrap{max-width:1060px;margin:0 auto;padding:32px 20px 80px}
+header h1{font-size:26px;margin:0 0 4px;letter-spacing:-.01em}
+header p{color:var(--soft);margin:0 0 6px;max-width:75ch}
+header code{font:12.5px ui-monospace,Consolas,monospace;background:var(--card);
+  border:1px solid var(--line);padding:1px 6px;border-radius:4px}
+.badge{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--accent-deep);border:1.5px solid var(--accent);
+  border-radius:999px;padding:2px 10px;margin-bottom:10px}
+.grid{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:20px;margin-top:22px}
+@media(max-width:880px){.grid{grid-template-columns:1fr}}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+.panel h2{font-size:14px;margin:0 0 10px;text-transform:uppercase;
+  letter-spacing:.08em;color:var(--soft)}
+textarea{width:100%;height:300px;resize:vertical;border:1px solid var(--line);
+  border-radius:8px;padding:10px;background:var(--paper);color:var(--ink);
+  font:12.5px/1.5 ui-monospace,"SF Mono",Consolas,monospace}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:10px}
+select,input[type=text]{border:1px solid var(--line);border-radius:8px;
+  padding:7px 10px;background:var(--paper);color:var(--ink);font:inherit;font-size:13.5px}
+button{border:0;border-radius:8px;padding:8px 16px;font:inherit;font-size:13.5px;
+  font-weight:600;cursor:pointer;background:var(--line);color:var(--ink)}
+button.primary{background:var(--accent);color:#fff}
+button:disabled{opacity:.5;cursor:wait}
+button:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.statusline{margin-top:10px;font:12.5px ui-monospace,Consolas,monospace;color:var(--soft);min-height:18px}
+.statusline.ok{color:var(--accent-deep)}
+.statusline.err{color:var(--red)}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;border-bottom:1px solid var(--line);margin-bottom:12px}
+.tabs button{background:transparent;border-radius:8px 8px 0 0;padding:7px 12px;font-weight:600;color:var(--soft)}
+.tabs button.active{color:var(--accent-deep);box-shadow:inset 0 -2px 0 var(--accent)}
+.out{min-height:340px}
+.out pre{background:var(--term);color:var(--term-ink);border-radius:10px;padding:14px;
+  overflow-x:auto;font:12.5px/1.6 ui-monospace,Consolas,monospace;white-space:pre-wrap}
+.md h1{font-size:20px;margin:.2em 0 .5em}.md h2{font-size:15px;margin:1.1em 0 .4em}
+.md ul{padding-left:20px;margin:.3em 0}.md li{margin:3px 0}
+.md blockquote{border-left:3px solid var(--accent);margin:0 0 12px;padding:6px 12px;
+  color:var(--soft);background:var(--paper);border-radius:0 8px 8px 0}
+.md del{color:var(--soft)}
+table.tasks{width:100%;border-collapse:collapse;font-size:13.5px}
+table.tasks th,table.tasks td{text-align:left;padding:7px 9px;border-bottom:1px solid var(--line)}
+table.tasks th{font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--soft)}
+.pill{display:inline-block;padding:1px 9px;border-radius:999px;font-size:11.5px;font-weight:600}
+.pill.open{background:color-mix(in srgb,var(--accent) 15%,transparent);color:var(--accent-deep)}
+.pill.blocked{background:color-mix(in srgb,var(--amber) 18%,transparent);color:var(--amber)}
+.pill.in_progress{background:color-mix(in srgb,#2563EB 14%,transparent);color:#2563EB}
+.pill.done{background:var(--line);color:var(--soft)}
+.overdue{color:var(--red);font-weight:600}
+iframe{width:100%;height:520px;border:1px solid var(--line);border-radius:10px;background:#fff}
+footer{margin-top:36px;padding-top:16px;border-top:1px solid var(--line);
+  color:var(--soft);font-size:13px}
+a{color:var(--accent-deep)}
+.spin{display:inline-block;width:12px;height:12px;border:2px solid var(--soft);
+  border-top-color:transparent;border-radius:50%;animation:sp 0.8s linear infinite;vertical-align:-2px;margin-right:6px}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media(prefers-reduced-motion:reduce){.spin{animation:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <span class="badge">Live test environment</span>
+  <h1>📋 watracker playground</h1>
+  <p>This page runs the <strong>actual Python package</strong> from
+  <a href="https://github.com/kalilurrahman/100-days-of-code/pull/6">PR&nbsp;#6</a> in your browser
+  (via Pyodide/WebAssembly) — nothing you paste leaves your machine.
+  Paste a WhatsApp export (or load the sample), analyse it, and inspect the tracked tasks,
+  reports, nudges, dashboard and sync JSON.</p>
+  <p>Export a chat from WhatsApp: chat → ⋮ → <em>More</em> → <em>Export chat</em> → <em>Without media</em>.</p>
+</header>
+
+<div class="grid">
+  <div class="panel">
+    <h2>1 · Input</h2>
+    <textarea id="input" spellcheck="false" placeholder="Paste an exported chat here…"></textarea>
+    <div class="row">
+      <select id="source" aria-label="Input format">
+        <option value="whatsapp">WhatsApp export (.txt)</option>
+        <option value="telegram">Telegram result.json</option>
+        <option value="vtt">Meeting transcript (.vtt)</option>
+        <option value="email">Email (.eml)</option>
+      </select>
+      <input type="text" id="chat" placeholder="Chat name (optional)">
+    </div>
+    <div class="row">
+      <button class="primary" id="run" disabled>Analyse ▶</button>
+      <button id="sample">Load sample chat</button>
+      <button id="reset">Reset tracker</button>
+    </div>
+    <div class="statusline" id="status"><span class="spin"></span>Loading Python runtime… (~10s first visit)</div>
+  </div>
+
+  <div class="panel">
+    <h2>2 · Tracker</h2>
+    <div class="tabs" id="tabs" role="tablist">
+      <button data-tab="tasks" class="active">Tasks</button>
+      <button data-tab="daily">Daily report</button>
+      <button data-tab="weekly">Weekly report</button>
+      <button data-tab="nudges">Nudges</button>
+      <button data-tab="dashboard">Dashboard</button>
+      <button data-tab="sync">Sync JSON</button>
+    </div>
+    <div class="out" id="out"><p style="color:var(--soft)">Analyse something to see results.</p></div>
+  </div>
+</div>
+
+<footer>
+  <p><strong>watracker</strong> — WhatsApp action &amp; assignment tracker · zero-dependency Python ·
+  extracts actions, assignees &amp; due dates; auto-closes on "done ✅"; flags blocked &amp; at-risk work;
+  daily/weekly summaries; Slack, GitHub Issues, calendar &amp; dashboard integrations.
+  <a href="https://github.com/kalilurrahman/100-days-of-code/tree/claude/whatsapp-action-tracker-gsmsin/whatsapp-action-tracker">Source &amp; docs</a>.</p>
+</footer>
+</div>
+
+<script>
+// Runtime location: jsdelivr CDN by default; "?pyodide=local" uses a
+// co-hosted copy (offline testing / locked-down networks).
+const PYODIDE_BASE = new URLSearchParams(location.search).get("pyodide") === "local"
+  ? new URL("pyodide-local/", location.href).href
+  : "https://cdn.jsdelivr.net/pyodide/v0.26.2/full/";
+
+function loadRuntime(){
+  return new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = PYODIDE_BASE + "pyodide.js";
+    s.onload = resolve;
+    s.onerror = () => reject(new Error("could not load pyodide.js from " + PYODIDE_BASE));
+    document.head.appendChild(s);
+  });
+}
+
+const FILES = ["__init__.py","parser.py","dates.py","extractor.py","store.py",
+  "reports.py","slack.py","sources.py","nudge.py","dashboard.py","ics.py",
+  "github_sync.py","webhook.py","ai.py","cli.py","__main__.py"];
+
+const SAMPLE_URL = "sample_chat.txt";
+let pyodide = null, results = null, activeTab = "tasks";
+
+const $ = id => document.getElementById(id);
+const status = (msg, cls="") => { const el=$("status"); el.className="statusline "+cls; el.innerHTML=msg; };
+
+async function boot(){
+  try {
+    await loadRuntime();
+    pyodide = await loadPyodide({ indexURL: PYODIDE_BASE });
+    await pyodide.loadPackage("sqlite3");  // unvendored from the stdlib in Pyodide
+    pyodide.FS.mkdir("app"); pyodide.FS.mkdir("app/watracker");
+    await Promise.all(FILES.map(async f => {
+      const r = await fetch("watracker/"+f);
+      if(!r.ok) throw new Error("fetch failed: "+f);
+      pyodide.FS.writeFile("app/watracker/"+f, await r.text());
+    }));
+    await pyodide.runPythonAsync(`
+import sys, json
+sys.path.insert(0, 'app')
+from watracker.store import Store
+from watracker.sources import load_messages
+from watracker.extractor import extract
+from watracker.cli import apply_extraction
+from watracker.reports import daily_report, weekly_report, status_report
+from watracker.dashboard import build_dashboard
+from watracker.nudge import build_nudges, format_nudges
+from watracker.slack import export_sync
+store = Store('/tmp/watracker.db')
+
+def _analyse(text, source, chat):
+    ext = {'whatsapp': '.txt', 'telegram': '.json', 'vtt': '.vtt', 'email': '.eml'}[source]
+    path = '/tmp/input' + ext
+    with open(path, 'w', encoding='utf-8') as fh:
+        fh.write(text)
+    messages = load_messages(path, chat=chat or '', source=source)
+    counts = apply_extraction(store, extract(messages))
+    counts['messages'] = len(messages)
+    return counts
+
+def _render():
+    return {
+        'tasks': store.tasks(),
+        'daily': daily_report(store),
+        'weekly': weekly_report(store),
+        'nudges': format_nudges(build_nudges(store)),
+        'dashboard': build_dashboard(store),
+        'sync': export_sync(store),
+    }
+
+def analyse(text, source, chat):
+    counts = _analyse(text, source, chat)
+    out = _render(); out['counts'] = counts
+    return json.dumps(out)
+
+def reset():
+    global store
+    store.close()
+    import os
+    if os.path.exists('/tmp/watracker.db'):
+        os.remove('/tmp/watracker.db')
+    store = Store('/tmp/watracker.db')
+    return json.dumps({'ok': True})
+`);
+    $("run").disabled = false;
+    status("Ready — running the real watracker package in your browser.", "ok");
+  } catch (e) {
+    status("Failed to load Python runtime: " + e.message, "err");
+  }
+}
+
+async function analyse(){
+  const text = $("input").value;
+  if(!text.trim()){ status("Paste a chat export first (or load the sample).", "err"); return; }
+  $("run").disabled = true;
+  status('<span class="spin"></span>Analysing…');
+  try {
+    const py = pyodide.globals.get("analyse");
+    const raw = py($("input").value, $("source").value, $("chat").value);
+    results = JSON.parse(raw);
+    const c = results.counts;
+    status(`Ingested ${c.messages} messages → ${c.added} new tasks, ${c.closed} closed, `+
+           `${c.outcomes} outcomes, ${c.duplicates} duplicates skipped.`, "ok");
+    render();
+  } catch(e){
+    status("Error: " + (e.message||e).split("\\n").pop(), "err");
+    console.error(e);
+  } finally { $("run").disabled = false; }
+}
+
+function mdToHtml(md){
+  const esc = s => s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+  return md.split("\n").map(line=>{
+    line = esc(line);
+    if(/^# /.test(line))  return "<h1>"+inline(line.slice(2))+"</h1>";
+    if(/^## /.test(line)) return "<h2>"+inline(line.slice(3))+"</h2>";
+    if(/^> /.test(line))  return "<blockquote>"+inline(line.slice(2))+"</blockquote>";
+    if(/^- /.test(line))  return "<li>"+inline(line.slice(2))+"</li>";
+    if(!line.trim())      return "";
+    return "<p>"+inline(line)+"</p>";
+  }).join("\n").replace(/(<li>[\s\S]*?<\/li>)(?!\s*<li>)/g,"<ul>$1</ul>");
+  function inline(s){
+    return s.replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>")
+            .replace(/~~(.+?)~~/g,"<del>$1</del>")
+            .replace(/_(.+?)_/g,"<em>$1</em>");
+  }
+}
+
+function taskTable(tasks){
+  if(!tasks.length) return "<p style='color:var(--soft)'>No tasks yet.</p>";
+  const today = new Date().toISOString().slice(0,10);
+  const esc = s => (s??"").toString().replace(/&/g,"&amp;").replace(/</g,"&lt;");
+  const rows = tasks.map(t=>{
+    const overdue = t.due && t.due < today && !["done","cancelled"].includes(t.status);
+    const flags = [t.priority==="high"?"🔴":"", (t.chases||0)>=2?`🔥×${t.chases}`:""].filter(Boolean).join(" ");
+    return `<tr><td>${esc(t.title)}</td><td>${esc(t.assignee)||"—"}</td>`+
+      `<td><span class="pill ${t.status}">${t.status.replace("_"," ")}</span></td>`+
+      `<td class="${overdue?"overdue":""}">${t.due||"—"}${overdue?" ⚠️":""}</td>`+
+      `<td>${flags||"—"}</td><td>${esc(t.chat)||esc(t.origin)}</td></tr>`;
+  }).join("");
+  return `<div style="overflow-x:auto"><table class="tasks"><thead><tr>
+    <th>Task</th><th>Assignee</th><th>Status</th><th>Due</th><th>Flags</th><th>Source</th>
+    </tr></thead><tbody>${rows}</tbody></table></div>`;
+}
+
+function render(){
+  const out = $("out");
+  if(!results){ return; }
+  if(activeTab==="tasks")      out.innerHTML = taskTable(results.tasks);
+  else if(activeTab==="daily") out.innerHTML = `<div class="md">${mdToHtml(results.daily)}</div>`;
+  else if(activeTab==="weekly")out.innerHTML = `<div class="md">${mdToHtml(results.weekly)}</div>`;
+  else if(activeTab==="nudges")out.innerHTML = `<div class="md">${mdToHtml(results.nudges)}</div>`;
+  else if(activeTab==="sync")  out.innerHTML = `<pre>${results.sync.replace(/</g,"&lt;")}</pre>`;
+  else if(activeTab==="dashboard"){
+    out.innerHTML = `<iframe title="dashboard"></iframe>`;
+    out.querySelector("iframe").srcdoc = results.dashboard;
+  }
+}
+
+$("tabs").addEventListener("click", e=>{
+  if(e.target.dataset.tab){
+    activeTab = e.target.dataset.tab;
+    document.querySelectorAll("#tabs button").forEach(b=>b.classList.toggle("active", b===e.target));
+    render();
+  }
+});
+$("run").addEventListener("click", analyse);
+$("reset").addEventListener("click", async ()=>{
+  if(!pyodide) return;
+  pyodide.globals.get("reset")();
+  results = null;
+  $("out").innerHTML = "<p style='color:var(--soft)'>Tracker reset. Analyse something to see results.</p>";
+  status("Tracker reset.", "ok");
+});
+$("sample").addEventListener("click", async ()=>{
+  const r = await fetch(SAMPLE_URL);
+  $("input").value = await r.text();
+  $("source").value = "whatsapp";
+  $("chat").value = "Launch Team";
+  status("Sample loaded — hit Analyse ▶", "ok");
+});
+
+boot();
+</script>
+</body>
+</html>
