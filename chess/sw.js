@@ -4,7 +4,7 @@
  * with no network (e.g. installed to a phone's home screen).
  */
 
-const CACHE = "chess-v2";
+const CACHE = "chess-v3";
 const ASSETS = [
   "./",
   "./index.html",
