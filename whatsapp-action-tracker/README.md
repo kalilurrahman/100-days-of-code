@@ -4,6 +4,11 @@ Automatically analyses WhatsApp group chats and DMs (exported `.txt` files, forw
 
 Pure Python 3.8+ standard library — **zero dependencies** to install. (An optional Claude-API mode improves extraction accuracy and writes executive summaries.)
 
+> **🧪 Try it now, no install:** the hosted playground at
+> **<https://kalilurrahman.github.io/100-days-of-code/watracker/>** runs the actual
+> Python package in your browser (Pyodide/WebAssembly). Paste an export — nothing
+> you paste leaves your machine.
+
 ```
 WhatsApp export (.txt)                             ┌────────────────┐
         │                                     ┌──▶ │ daily report   │──┐
