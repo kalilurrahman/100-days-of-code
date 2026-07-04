@@ -1,0 +1,16 @@
+# watracker scheduled summaries — install with: crontab -e
+# Assumes exports are dropped into ~/tracker/exports and SLACK_WEBHOOK_URL is set
+# in the environment (or pass --webhook URL explicitly).
+
+# Ingest any new/updated exports every hour (idempotent — safe to re-run)
+0 * * * *  cd ~/tracker && for f in exports/*.txt; do python3 -m watracker ingest "$f"; done
+
+# Daily outstanding digest at 08:00, posted to Slack
+0 8 * * *  cd ~/tracker && python3 -m watracker report daily --post-slack
+
+# Weekly wrap-up every Friday at 17:00
+0 17 * * 5 cd ~/tracker && python3 -m watracker report weekly --post-slack
+
+# Publish sync JSON for the Slack assignment tracker, and merge its updates back
+30 * * * * cd ~/tracker && python3 -m watracker export --out sync/whatsapp-tasks.json \
+           && { [ -f sync/slack-tasks.json ] && python3 -m watracker import sync/slack-tasks.json; }

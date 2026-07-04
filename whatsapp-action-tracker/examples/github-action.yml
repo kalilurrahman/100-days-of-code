@@ -1,0 +1,58 @@
+# Scheduled action-tracker summaries, posted to Slack.
+#
+# To enable: copy this file to .github/workflows/watracker-reports.yml,
+# keep WhatsApp exports under whatsapp-action-tracker/exports/ (or fetch them
+# in an extra step), and add a SLACK_WEBHOOK_URL repository secret.
+
+name: Action tracker reports
+
+on:
+  schedule:
+    - cron: "0 8 * * *"    # daily digest, 08:00 UTC
+    - cron: "0 17 * * 5"   # weekly wrap-up, Friday 17:00 UTC
+  workflow_dispatch: {}
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: whatsapp-action-tracker
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Restore tracker database
+        uses: actions/cache@v4
+        with:
+          path: ~/.watracker
+          key: watracker-db-${{ github.run_id }}
+          restore-keys: watracker-db-
+
+      - name: Ingest exports
+        run: |
+          shopt -s nullglob
+          for f in exports/*.txt; do
+            python3 -m watracker ingest "$f"
+          done
+
+      - name: Sync with the Slack assignment tracker (if sync files present)
+        run: |
+          mkdir -p sync
+          [ -f sync/slack-tasks.json ] && python3 -m watracker import sync/slack-tasks.json || true
+          python3 -m watracker export --out sync/whatsapp-tasks.json
+
+      - name: Daily report
+        if: github.event.schedule != '0 17 * * 5'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: python3 -m watracker report daily --post-slack
+
+      - name: Weekly report
+        if: github.event.schedule == '0 17 * * 5'
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: python3 -m watracker report weekly --post-slack
