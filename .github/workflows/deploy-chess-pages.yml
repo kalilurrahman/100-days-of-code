@@ -1,14 +1,21 @@
-name: Deploy Chess to GitHub Pages
+name: Deploy site to GitHub Pages
 
-# Publishes the self-contained chess game (the chess/ folder) to GitHub Pages.
-# The chess/ directory is uploaded as the site root, so the game is served at
-# the repository's Pages URL (e.g. https://<user>.github.io/<repo>/).
+# Publishes the GitHub Pages site:
+#   /            -> the self-contained chess game (chess/)
+#   /watracker/  -> the watracker browser playground
+#                   (whatsapp-action-tracker/playground/)
 
 on:
   push:
-    branches: [master, main]
+    branches:
+      - master
+      - main
+      # Temporary: deploy from the PR branch so the watracker playground can
+      # be tested before merge. Remove this line once PR #6 is merged.
+      - claude/whatsapp-action-tracker-gsmsin
     paths:
       - "chess/**"
+      - "whatsapp-action-tracker/playground/**"
       - ".github/workflows/deploy-chess-pages.yml"
   workflow_dispatch:
 
@@ -39,10 +46,17 @@ jobs:
           # repo-settings toggle is required for the first deploy.
           enablement: true
 
-      - name: Upload chess/ as the Pages artifact
+      - name: Compose site (chess at root, watracker playground at /watracker/)
+        run: |
+          mkdir -p _site/watracker
+          cp -r chess/* _site/
+          cp -r whatsapp-action-tracker/playground/* _site/watracker/
+          rm -f _site/watracker/build.sh
+
+      - name: Upload the Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./chess
+          path: ./_site
 
       - name: Deploy to GitHub Pages
         id: deployment
