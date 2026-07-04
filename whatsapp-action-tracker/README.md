@@ -1,8 +1,8 @@
 # 📋 WhatsApp Action Tracker (`watracker`)
 
-Automatically analyses WhatsApp group chats and DMs (exported `.txt` files, forwards included), extracts **actions, follow-ups, commitments and assignments**, tracks them in a local database, and generates **daily and weekly outstanding summaries** plus **key-outcomes status** reports — which it can post straight to **Slack** and sync with a Slack-based assignment tracker.
+Automatically analyses WhatsApp group chats and DMs (exported `.txt` files, forwards included) — plus **email threads, meeting transcripts and Telegram exports** — extracts **actions, follow-ups, commitments and assignments**, tracks them in a local database, and generates **daily and weekly outstanding summaries** plus **key-outcomes status** reports. It posts to **Slack**, syncs with a Slack-based assignment tracker and **GitHub Issues**, nudges assignees about overdue work, and publishes a **calendar feed** and an **HTML dashboard**.
 
-Pure Python 3.8+ standard library — **zero dependencies** to install. (An optional Claude-API mode improves extraction accuracy.)
+Pure Python 3.8+ standard library — **zero dependencies** to install. (An optional Claude-API mode improves extraction accuracy and writes executive summaries.)
 
 ```
 WhatsApp export (.txt)                             ┌────────────────┐
@@ -58,20 +58,56 @@ python3 -m watracker --db /tmp/demo.db report daily --date 2026-07-03
 | Progress / blocker | "working on it" / "stuck, **waiting on** vendor" | Status → in progress / blocked |
 | Decision | "**We decided** to launch July 15" / "**Agreed to** …" | Key outcome record |
 
-Due-date phrases are resolved against the message timestamp: `today`, `EOD`, `tomorrow`, `by Friday`, `next Tuesday`, `end of week/month`, `in 3 days`, `15/07`, `July 9th`, …
+Due-date phrases are resolved against the message timestamp: `today`, `EOD`, `tomorrow`, `by Friday`, `next Tuesday`, `end of week/month`, `in 3 days`, `15/07`, `July 9th`, … Multilingual patterns are built in for common Spanish, French and Hinglish requests, completions and date words (`por favor…`, `peux-tu…`, `bhej do`, `ho gaya`, `mañana`, `demain`, `kal`, `urgente`, `jaldi`).
+
+**Risk detection:** repeated chasing in chat ("any update?", "gentle reminder", "3rd time asking") marks the matching task 🔥 **at risk** in reports, digests, nudges and the dashboard.
 
 Both Android (`31/12/23, 22:15 - Name: …`) and iOS (`[31/12/23, 10:15:42 PM] Name: …`) export formats are handled, with automatic day-first/month-first inference (`--date-order dmy|mdy` to force).
+
+## Beyond WhatsApp: more sources, one tracker
+
+`ingest` auto-detects the format from the extension (`--source` to force). Everything funnels into the same task list:
+
+| Source | File | Notes |
+|---|---|---|
+| WhatsApp export | `.txt` | groups & DMs, forwards included |
+| Email | `.eml`, `.mbox` | subject prepended for context; quoted reply history stripped |
+| Meeting transcript | `.vtt` (Teams/Zoom WebVTT) | speaker attribution from cues; anchor with `--ref-date` |
+| Telegram Desktop export | `result.json` | rich-text entities flattened |
+
+```bash
+python3 -m watracker ingest standup.vtt --ref-date 2026-07-02
+python3 -m watracker ingest inbox.mbox --chat "Client thread"
+python3 -m watracker ingest result.json          # Telegram
+```
+
+### Real-time WhatsApp ingestion (Cloud API webhook)
+
+Instead of periodic exports, `watracker serve` runs a webhook endpoint for the official [WhatsApp Business Cloud API](https://developers.facebook.com/docs/whatsapp/cloud-api) — incoming messages flow through the extraction pipeline as they arrive:
+
+```bash
+WA_VERIFY_TOKEN=my-verify-token WA_APP_SECRET=my-app-secret \
+python3 -m watracker serve --port 8080
+```
+
+Handles Meta's `hub.challenge` verification and validates `X-Hub-Signature-256` when the app secret is set. Terminate TLS in front of it (Meta requires HTTPS callbacks).
 
 ## Commands
 
 ```text
-watracker ingest FILE [--chat NAME] [--date-order auto|dmy|mdy] [--ai]
+watracker ingest FILE [--chat NAME] [--source auto|whatsapp|email|vtt|telegram] [--ref-date D] [--ai]
 watracker list [--status open|in_progress|blocked|done|cancelled] [--assignee X] [--chat Y]
 watracker add TITLE [--assignee X] [--due YYYY-MM-DD] [--high]
 watracker done|start|block|cancel|reopen ID
-watracker report daily|weekly|status [--date YYYY-MM-DD] [--out FILE] [--post-slack] [--webhook URL]
-watracker export [--out FILE]          # action-tracker-sync/v1 JSON
-watracker import FILE                  # merge tasks from another tracker
+watracker report daily|weekly|status [--date YYYY-MM-DD] [--ai] [--out FILE] [--post-slack]
+watracker digest [--assignee X] [--post-slack]     # per-person open-task digests
+watracker nudge [--post-slack] [--stale-days N] [--escalate-days N] [--min-interval H]
+watracker github --repo owner/name [--token T]     # sync with GitHub Issues
+watracker calendar [--out tasks.ics] [--open-only] # iCalendar feed of due dates
+watracker dashboard [--out dashboard.html]         # self-contained HTML dashboard
+watracker serve [--port 8080] [--verify-token T]   # WhatsApp Cloud API webhook
+watracker export [--out FILE]                      # action-tracker-sync/v1 JSON
+watracker import FILE                              # merge tasks from another tracker
 ```
 
 Global: `--db PATH` (default `~/.watracker/watracker.db`).
@@ -105,6 +141,37 @@ python3 -m watracker import sync/slack-tasks.json
 ```
 
 Merge rules: unknown `uid`s are added; a remote `done`/`cancelled` status closes the local copy (a completion anywhere wins — the work happened). Everything else is left untouched, so repeated syncs are safe.
+
+### 3. Nudges & escalation
+
+`watracker nudge` composes a per-person message for overdue, blocked, stale and at-risk tasks — and escalates to the requester once something is overdue past the threshold:
+
+```text
+👋 Chen — friendly nudge:
+- ⚠️ book the venue for the launch event is 1 day overdue (was due 03 Jul). Can you update its status?
+↑ Alice: 'book the venue…' (Chen) is 4d overdue — may need your help.
+```
+
+`--post-slack` delivers and records the nudge; nudges are rate-limited per task (default 20h) so a frequent cron won't spam. `digest --post-slack` sends each person their own open-task digest.
+
+## GitHub Issues sync
+
+Mirror the tracker onto a repo's issue board (label `watracker`) with a token in `GITHUB_TOKEN`:
+
+```bash
+python3 -m watracker github --repo you/your-repo
+```
+
+Open tasks become issues (issue number stored on the task), locally-completed tasks close their issues, and issues closed on GitHub complete the local task — same "a completion anywhere wins" rule as the Slack sync.
+
+## Calendar & dashboard
+
+```bash
+python3 -m watracker calendar --out tasks.ics    # subscribe in Google/Outlook/Apple Calendar
+python3 -m watracker dashboard --out dashboard.html
+```
+
+The dashboard is a single self-contained HTML file (summary tiles, open-task table with overdue/at-risk flags, per-assignee counts, recent outcomes) — host it on GitHub Pages or share it directly.
 
 <details>
 <summary><code>action-tracker-sync/v1</code> schema</summary>
@@ -155,12 +222,13 @@ Merge rules: unknown `uid`s are added; a remote `done`/`cancelled` status closes
 
 ## Optional: Claude-powered extraction
 
-The default extractor is rule-based and dependency-free. For messier chats (mixed languages, implicit assignments), `--ai` sends the transcript to the Claude API (model `claude-opus-4-8`) with a strict JSON schema and merges the results into the same tracker:
+The default extractor is rule-based and dependency-free. For messier chats (mixed languages, implicit assignments), `ingest --ai` sends the transcript to the Claude API (model `claude-opus-4-8`) with a strict JSON schema and merges the results into the same tracker. `report weekly --ai` prepends a Claude-written executive summary ("launch on track except venue booking, blocked 4 days on vendor…") to the structured report:
 
 ```bash
 pip install anthropic
 export ANTHROPIC_API_KEY=sk-ant-...
 python3 -m watracker ingest chat.txt --ai
+python3 -m watracker report weekly --ai --post-slack
 ```
 
 ## Getting chats out of WhatsApp
@@ -174,4 +242,4 @@ python3 -m watracker ingest chat.txt --ai
 python3 -m unittest discover -s tests -v   # 37 tests, no dependencies
 ```
 
-Layout: `parser.py` (export formats) → `extractor.py` (+ `dates.py`) → `store.py` (SQLite) → `reports.py` / `slack.py` (outputs & sync) → `cli.py`; `ai.py` is the optional Claude extractor.
+Layout: `parser.py` + `sources.py` (WhatsApp/email/VTT/Telegram) and `webhook.py` (Cloud API) feed `extractor.py` (+ `dates.py`) → `store.py` (SQLite) → outputs: `reports.py` (daily/weekly/status/digests), `slack.py` (webhook + sync), `nudge.py`, `github_sync.py`, `ics.py`, `dashboard.py`; `cli.py` wires it together and `ai.py` is the optional Claude layer.

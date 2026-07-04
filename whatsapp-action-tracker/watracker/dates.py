@@ -26,9 +26,9 @@ _MONTH_PAT = "|".join(sorted(_MONTH_IDX, key=len, reverse=True))
 _PATTERNS: Tuple[Tuple[re.Pattern, str], ...] = tuple(
     (re.compile(p, re.IGNORECASE), kind)
     for p, kind in [
-        (r"\bday after tomorrow\b", "day_after_tomorrow"),
-        (r"\btomorrow\b|\btmrw\b|\btmr\b", "tomorrow"),
-        (r"\btoday\b|\btonight\b|\bby eod\b|\beod\b|\bcob\b|\bend of (?:the )?day\b", "today"),
+        (r"\bday after tomorrow\b|\bpasado ma[ñn]ana\b|\bapr[eè]s-demain\b|\bparso\b", "day_after_tomorrow"),
+        (r"\btomorrow\b|\btmrw\b|\btmr\b|\bma[ñn]ana\b|\bdemain\b|\bkal\b", "tomorrow"),
+        (r"\btoday\b|\btonight\b|\bby eod\b|\beod\b|\bcob\b|\bend of (?:the )?day\b|\bhoy\b|\baujourd'hui\b|\baaj\b", "today"),
         (r"\bby (?:the )?end of (?:the |this )?week\b|\beow\b|\bthis week\b", "eow"),
         (r"\bend of (?:the |this )?month\b|\beom\b", "eom"),
         (r"\bnext week\b", "next_week"),

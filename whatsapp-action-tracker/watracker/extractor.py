@@ -38,6 +38,17 @@ REQUEST_PATTERNS = [
     (re.compile(r"\b(?:need to|have to|must)\s+(?:follow up|chase|check)\s*(?P<task>.*)", re.I), 0.8),
     (re.compile(r"\bfollow(?:ing)?[ -]up\s+(?:on|with)\s+(?P<task>.+)", re.I), 0.85),
     (re.compile(r"\blet'?s\s+(?P<task>.{6,})", re.I), 0.55),
+    # -- multilingual request packs (common in mixed-language group chats) --
+    # Spanish: "por favor envía…", "puedes revisar…"
+    (re.compile(r"\b(?:por favor|puedes|podr[ií]as|puede usted)[,\s]+(?P<task>.{4,})", re.I), 0.8),
+    (re.compile(r"\bno (?:te )?olvides de\s+(?P<task>.{4,})", re.I), 0.85),
+    # French: "peux-tu envoyer…", "n'oublie pas de…"
+    (re.compile(r"\b(?:s'il te pla[iî]t|s'il vous pla[iî]t|peux-tu|pouvez-vous|pourrais-tu)[,\s]+(?P<task>.{4,})", re.I), 0.8),
+    (re.compile(r"\bn'oublie(?:z)? pas de\s+(?P<task>.{4,})", re.I), 0.85),
+    # Hinglish: "report bhej do", "presentation ready kar dena", "… karna hai"
+    (re.compile(r"(?P<task>[\w @#&/'-]{4,}?)\s+(?:bhej(?:o| do| dena| dijiye)|kar(?: do| dena| dijiye| lena)|bana(?: do| dena| lo))\b", re.I), 0.7),
+    (re.compile(r"(?P<task>[\w @#&/'-]{4,}?)\s+karn[ae] (?:hai|hoga|padega)\b", re.I), 0.7),
+    (re.compile(r"\byaad se\s+(?P<task>.{4,})", re.I), 0.75),
 ]
 
 # "Bob will send the deck" / "@bob to review the PR" — task with an assignee.
@@ -53,7 +64,19 @@ COMMITMENT_RE = re.compile(r"\b(?:i'?ll|i will|i can|i am going to|i'?m going to
 
 DONE_RE = re.compile(
     r"\b(?:done|completed|complete|finished|closed|sorted|resolved|deployed|"
-    r"sent|shared|submitted|uploaded|fixed|delivered|merged|booked|paid)\b|✅|✔|☑",
+    r"sent|shared|submitted|uploaded|fixed|delivered|merged|booked|paid|"
+    # es / fr / hinglish completion markers
+    r"hecho|listo|enviado|terminado|fait|termin[ée]|envoy[ée]|"
+    r"ho gaya|kar diya|bhej diya|bana diya|hogaya)\b|✅|✔|☑",
+    re.I,
+)
+
+# Chasing / repeated follow-ups on something already asked — a risk signal.
+CHASE_RE = re.compile(
+    r"\b(?:any update|any progress|gentle reminder|reminder|still waiting|"
+    r"following up again|bump(?:ing)?(?: this)?|status\s*\?|"
+    r"asked (?:this |you )?(?:before|already|twice|again)|"
+    r"(?:2nd|3rd|second|third) (?:reminder|time asking))\b",
     re.I,
 )
 PROGRESS_RE = re.compile(r"\b(?:working on|started (?:on|with)?|in progress|wip|picking (?:this|it) up|on it)\b", re.I)
@@ -65,7 +88,11 @@ OUTCOME_RE = re.compile(
     re.I,
 )
 
-URGENT_RE = re.compile(r"\b(?:urgent|urgently|asap|critical|high priority|top priority|immediately|right away)\b", re.I)
+URGENT_RE = re.compile(
+    r"\b(?:urgent|urgently|asap|critical|high priority|top priority|immediately|right away|"
+    r"urgente|tr[eè]s urgent|jaldi|turant)\b",
+    re.I,
+)
 
 QUESTION_ONLY_RE = re.compile(r"^\s*(?:what|why|when|where|who|how|is|are|was|were|do|does|did|any update)\b.*\?\s*$", re.I | re.S)
 
@@ -195,6 +222,9 @@ def extract(messages: Iterable[Message]) -> ExtractionResult:
             result.signals.append(StatusSignal("blocked", msg.timestamp, msg.sender, text, msg.chat))
         elif PROGRESS_RE.search(text):
             result.signals.append(StatusSignal("in_progress", msg.timestamp, msg.sender, text, msg.chat))
+        elif CHASE_RE.search(text):
+            # Repeated chasing marks the referenced task as at-risk.
+            result.signals.append(StatusSignal("chase", msg.timestamp, msg.sender, text, msg.chat))
     return result
 
 

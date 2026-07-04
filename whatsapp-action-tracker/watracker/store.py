@@ -38,7 +38,10 @@ CREATE TABLE IF NOT EXISTS tasks (
     completed_at TEXT,
     source_ts TEXT,
     source_sender TEXT,
-    source_text TEXT
+    source_text TEXT,
+    external_ref TEXT,
+    last_nudged_at TEXT,
+    chases INTEGER DEFAULT 0
 );
 CREATE TABLE IF NOT EXISTS outcomes (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -73,6 +76,19 @@ class Store:
         self.conn = sqlite3.connect(str(self.path))
         self.conn.row_factory = sqlite3.Row
         self.conn.executescript(_SCHEMA)
+        self._migrate()
+
+    def _migrate(self):
+        """Add columns introduced after v1.0 to databases created by it."""
+        existing = {row[1] for row in self.conn.execute("PRAGMA table_info(tasks)")}
+        for column, ddl in (
+            ("external_ref", "ALTER TABLE tasks ADD COLUMN external_ref TEXT"),
+            ("last_nudged_at", "ALTER TABLE tasks ADD COLUMN last_nudged_at TEXT"),
+            ("chases", "ALTER TABLE tasks ADD COLUMN chases INTEGER DEFAULT 0"),
+        ):
+            if column not in existing:
+                self.conn.execute(ddl)
+        self.conn.commit()
 
     def close(self):
         self.conn.close()
@@ -181,6 +197,26 @@ class Store:
             if similarity(title, task["title"]) >= threshold:
                 return task
         return None
+
+    def set_external_ref(self, task_id: int, ref: str) -> bool:
+        cur = self.conn.execute(
+            "UPDATE tasks SET external_ref=?, updated_at=? WHERE id=?", (ref, _now(), task_id)
+        )
+        self.conn.commit()
+        return cur.rowcount > 0
+
+    def mark_nudged(self, task_id: int, when: Optional[str] = None) -> None:
+        self.conn.execute(
+            "UPDATE tasks SET last_nudged_at=? WHERE id=?", (when or _now(), task_id)
+        )
+        self.conn.commit()
+
+    def bump_chase(self, task_id: int) -> None:
+        self.conn.execute(
+            "UPDATE tasks SET chases=COALESCE(chases,0)+1, updated_at=? WHERE id=?",
+            (_now(), task_id),
+        )
+        self.conn.commit()
 
     # -- outcomes ----------------------------------------------------------
 

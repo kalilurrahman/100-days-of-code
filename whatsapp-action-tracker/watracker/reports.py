@@ -27,6 +27,8 @@ def _fmt_task(task: dict, today: date) -> str:
         parts.append("_(blocked)_")
     elif task.get("status") == "in_progress":
         parts.append("_(in progress)_")
+    if (task.get("chases") or 0) >= 2:
+        parts.append(f"🔥 _at risk — chased ×{task['chases']}_")
     if task.get("chat"):
         parts.append(f"· _{task['chat']}_")
     return "- " + " ".join(parts)
@@ -161,6 +163,32 @@ def weekly_report(store: Store, week_ending: Optional[date] = None) -> str:
         lines.append("")
     _ = total_touched
     return "\n".join(lines).rstrip() + "\n"
+
+
+def assignee_digest(store: Store, assignee: str, on: Optional[date] = None) -> str:
+    """Personal digest: one person's open tasks, most urgent first."""
+    today = on or date.today()
+    tasks = store.tasks(assignee=assignee, open_only=True)
+    lines = [f"# 👤 {assignee} — your open actions ({today:%d %b})", ""]
+    if not tasks:
+        lines.append("_Nothing on your plate. 🎉_")
+        return "\n".join(lines) + "\n"
+    overdue, due_soon, rest = _partition(tasks, today)
+    for header, bucket in (("## ⚠️ Overdue", overdue), ("## ⏰ Due soon", due_soon), ("## 📌 Open", rest)):
+        if bucket:
+            lines.append(header)
+            lines += [_fmt_task(t, today) for t in bucket]
+            lines.append("")
+    return "\n".join(lines).rstrip() + "\n"
+
+
+def all_digests(store: Store, on: Optional[date] = None) -> dict:
+    """{assignee: digest_markdown} for every assignee with open tasks."""
+    assignees = sorted(
+        {t["assignee"] for t in store.tasks(open_only=True) if t.get("assignee")},
+        key=str.lower,
+    )
+    return {a: assignee_digest(store, a, on=on) for a in assignees}
 
 
 def status_report(store: Store, recent_outcomes: int = 10) -> str:

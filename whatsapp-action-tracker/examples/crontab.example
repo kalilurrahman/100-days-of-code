@@ -14,3 +14,11 @@
 # Publish sync JSON for the Slack assignment tracker, and merge its updates back
 30 * * * * cd ~/tracker && python3 -m watracker export --out sync/whatsapp-tasks.json \
            && { [ -f sync/slack-tasks.json ] && python3 -m watracker import sync/slack-tasks.json; }
+
+# Nudge assignees about overdue/blocked/at-risk work twice a day (rate-limited per task)
+0 9,15 * * 1-5 cd ~/tracker && python3 -m watracker nudge --post-slack
+
+# Keep the GitHub issue board, calendar feed and dashboard fresh
+15 * * * * cd ~/tracker && python3 -m watracker github --repo you/your-repo \
+           && python3 -m watracker calendar --out public/tasks.ics \
+           && python3 -m watracker dashboard --out public/dashboard.html

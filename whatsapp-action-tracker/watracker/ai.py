@@ -163,3 +163,30 @@ def _merge(result: ExtractionResult, data: dict, batch: Sequence[Message]) -> No
 
 def _now() -> datetime:  # kept for testability
     return datetime.now()
+
+
+def narrative(report_md: str) -> str:
+    """Executive-summary paragraph for a generated report (``report --ai``)."""
+    try:
+        import anthropic
+    except ImportError as exc:  # pragma: no cover - depends on environment
+        raise RuntimeError(
+            "--ai requires the Anthropic SDK: pip install anthropic"
+        ) from exc
+
+    client = anthropic.Anthropic()
+    response = client.messages.create(
+        model=MODEL,
+        max_tokens=2000,
+        thinking={"type": "adaptive"},
+        system=(
+            "You write the executive summary for a team's action-tracker report. "
+            "In 3-5 plain sentences: overall trajectory, the one or two items most "
+            "at risk (overdue, blocked, or repeatedly chased) and who owns them, and "
+            "any decision worth flagging. No headers, no bullets, no preamble."
+        ),
+        messages=[{"role": "user", "content": report_md}],
+    )
+    if response.stop_reason == "refusal":
+        return ""
+    return next((b.text for b in response.content if b.type == "text"), "").strip()
