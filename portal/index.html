@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kalilur Rahman · Portal</title>
+  <meta name="description" content="Kalilur Rahman — Global IT Executive & AI Leader. Personal portal: executive summary, impact, frameworks, books, digital ecosystem, awards and contact." />
+  <meta name="theme-color" content="#101418" />
+  <meta property="og:title" content="Kalilur Rahman · Portal" />
+  <meta property="og:description" content="Global IT Executive & AI Leader — Quality Engineering, Agentic AI and GCC leadership." />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="icon" href="icon.svg" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to main content</a>
+
+  <header class="topbar">
+    <a class="brand" href="#top">
+      <span class="brand-mark" aria-hidden="true">KR</span>
+      <span class="brand-name">Kalilur Rahman</span>
+    </a>
+    <nav class="topnav" aria-label="Sections">
+      <a href="#summary">Summary</a>
+      <a href="#impact">Impact</a>
+      <a href="#career">Career</a>
+      <a href="#frameworks">Frameworks</a>
+      <a href="#ecosystem">Apps</a>
+      <a href="#books">Books</a>
+      <a href="#awards">Awards</a>
+      <a href="#connect">Connect</a>
+    </nav>
+    <div class="topbar-actions">
+      <button id="install-btn" class="ghost-btn" hidden>Install app</button>
+      <button id="theme-toggle" class="ghost-btn" aria-label="Toggle color theme">🌙</button>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- Hero -->
+    <section class="hero" id="top">
+      <p class="kicker">Digital Transformation &amp; AI Strategy</p>
+      <h1><span class="hero-name"></span><br /><span class="hero-title"></span></h1>
+      <p class="hero-tagline"></p>
+      <div class="hero-badges" role="list"></div>
+      <div class="hero-cta">
+        <a class="btn primary" href="#ecosystem">Explore the work</a>
+        <a class="btn" href="#summary">Executive summary</a>
+      </div>
+    </section>
+
+    <!-- Stat tiles -->
+    <section class="stats" aria-label="Career at a glance">
+      <div class="stat-grid" id="stat-grid"></div>
+    </section>
+
+    <!-- Executive summary -->
+    <section id="summary" class="section">
+      <p class="kicker">Executive summary</p>
+      <h2>Strategy meets execution — from whiteboard to production.</h2>
+      <div class="summary-copy" id="summary-copy"></div>
+    </section>
+
+    <!-- Impact -->
+    <section id="impact" class="section">
+      <p class="kicker">Signature impact</p>
+      <h2>Independent, measurable outcomes.</h2>
+      <div class="impact-grid" id="impact-grid"></div>
+    </section>
+
+    <!-- Career -->
+    <section id="career" class="section">
+      <p class="kicker">Career</p>
+      <h2>Three decades, five continents.</h2>
+      <ol class="timeline" id="timeline"></ol>
+    </section>
+
+    <!-- Frameworks -->
+    <section id="frameworks" class="section">
+      <p class="kicker">Signature frameworks</p>
+      <h2>Methodologies built for the AI era.</h2>
+      <div class="framework-grid" id="framework-grid"></div>
+    </section>
+
+    <!-- Digital ecosystem -->
+    <section id="ecosystem" class="section">
+      <p class="kicker">The digital ecosystem</p>
+      <h2>Eighty-plus apps. One builder.</h2>
+      <p class="section-note">
+        A working library spanning AI &amp; prompts, enterprise strategy, learning, tools and
+        side projects. Search below, or browse everything on the
+        <a href="" data-hub-link target="_blank" rel="noopener">Digital Hub ↗</a>.
+      </p>
+      <div class="app-controls">
+        <input id="app-search" type="search" placeholder="Search apps… (e.g. GCC, prompts, chess)" aria-label="Search apps" />
+        <div class="chip-row" id="app-chips" role="group" aria-label="Filter by category"></div>
+      </div>
+      <div class="app-grid" id="app-grid"></div>
+      <p class="empty-note" id="app-empty" hidden>No apps match — try a different search.</p>
+    </section>
+
+    <!-- Books -->
+    <section id="books" class="section">
+      <p class="kicker">Published works</p>
+      <h2>Selected books.</h2>
+      <div class="book-grid" id="book-grid"></div>
+    </section>
+
+    <!-- Recommendations -->
+    <section id="recommendations" class="section">
+      <p class="kicker">What colleagues say</p>
+      <h2>33 recommendations from leaders across the industry.</h2>
+      <div class="rec-grid" id="rec-grid"></div>
+    </section>
+
+    <!-- Awards -->
+    <section id="awards" class="section">
+      <p class="kicker">Awards &amp; recognition</p>
+      <h2>Independent validation of impact.</h2>
+      <div class="award-grid" id="award-grid"></div>
+    </section>
+
+    <!-- Connect -->
+    <section id="connect" class="section connect">
+      <p class="kicker">Contact</p>
+      <h2>Let's explore building something together.</h2>
+      <p class="section-note">
+        Open to advisory conversations, board-level discussions, framework development and
+        speaking engagements. <span id="location-note"></span>
+      </p>
+      <div class="connect-actions">
+        <a class="btn primary" id="email-link" href="#">Email me</a>
+        <a class="btn" href="https://www.linkedin.com/in/kalilurrahman/" target="_blank" rel="noopener">Connect on LinkedIn</a>
+      </div>
+      <div class="link-grid" id="link-grid"></div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>© <span id="year"></span> Kalilur Rahman. Built as an installable web app — works offline.</p>
+  </footer>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

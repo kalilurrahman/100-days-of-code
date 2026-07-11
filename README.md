@@ -1,5 +1,10 @@
 # I've joined the #100DaysOfCode Challenge
 
+## Projects in this repo
+
+* **[KR Portal](portal/)** — Kalilur Rahman's personal portal: an installable PWA with executive summary, impact highlights, frameworks, books, a searchable directory of the 80+ app ecosystem, awards and contact links. Served at the repo's GitHub Pages root.
+* **[Chess](chess/)** — a mobile-friendly chess PWA with an AI opponent. Served at `/chess/` on GitHub Pages.
+
 ## Contents
 
 * [Rules](rules.md)
