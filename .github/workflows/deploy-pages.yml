@@ -1,15 +1,17 @@
-name: Deploy Chess to GitHub Pages
+name: Deploy site to GitHub Pages
 
-# Publishes the self-contained chess game (the chess/ folder) to GitHub Pages.
-# The chess/ directory is uploaded as the site root, so the game is served at
-# the repository's Pages URL (e.g. https://<user>.github.io/<repo>/).
+# Publishes the personal portal (portal/) as the site root, with the
+# self-contained chess game served alongside it at /chess/.
+#   https://<user>.github.io/<repo>/        → portal
+#   https://<user>.github.io/<repo>/chess/  → chess game
 
 on:
   push:
     branches: [master, main]
     paths:
+      - "portal/**"
       - "chess/**"
-      - ".github/workflows/deploy-chess-pages.yml"
+      - ".github/workflows/deploy-pages.yml"
   workflow_dispatch:
 
 permissions:
@@ -39,10 +41,16 @@ jobs:
           # repo-settings toggle is required for the first deploy.
           enablement: true
 
-      - name: Upload chess/ as the Pages artifact
+      - name: Assemble site (portal at root, chess at /chess/)
+        run: |
+          mkdir -p _site/chess
+          cp -r portal/. _site/
+          cp -r chess/. _site/chess/
+
+      - name: Upload the Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./chess
+          path: ./_site
 
       - name: Deploy to GitHub Pages
         id: deployment
